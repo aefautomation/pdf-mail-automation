@@ -1,14 +1,14 @@
 import os
 import requests
 
-print("Graph test gestart")
+print("Graph folder test gestart")
 
 tenant_id = os.getenv("AZURE_TENANT_ID")
 client_id = os.getenv("AZURE_CLIENT_ID")
 client_secret = os.getenv("AZURE_CLIENT_SECRET")
 mailbox_user = os.getenv("MAILBOX_USER")
 
-# 1️⃣ OAuth token ophalen
+# Token ophalen
 token_url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
 
 token_data = {
@@ -27,31 +27,18 @@ if not access_token:
 
 print("Token ontvangen")
 
-# 2️⃣ Mails ophalen via Graph
+# 👇 Headers MOET hier staan
 headers = {
     "Authorization": f"Bearer {access_token}"
 }
 
-mail_url = f"https://graph.microsoft.com/v1.0/users/{mailbox_user}/messages?$top=5"
-
-mail_response = requests.get(mail_url, headers=headers)
-
-if mail_response.status_code != 200:
-    print("Mail fout:", mail_response.text)
-    exit()
-
-emails = mail_response.json().get("value", [])
-
-print(f"{len(emails)} mails gevonden")
-
-for mail in emails:
-    print("Onderwerp:", mail.get("subject"))
-
-print("Graph test klaar")
-
 # Mailfolders ophalen
 folders_url = f"https://graph.microsoft.com/v1.0/users/{mailbox_user}/mailFolders"
 folders_response = requests.get(folders_url, headers=headers)
+
+if folders_response.status_code != 200:
+    print("Folder fout:", folders_response.text)
+    exit()
 
 folders = folders_response.json().get("value", [])
 
@@ -60,3 +47,5 @@ for folder in folders:
     print("Naam:", folder.get("displayName"))
     print("ID:", folder.get("id"))
     print("-----")
+
+print("Folder test klaar")
