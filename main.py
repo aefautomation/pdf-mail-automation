@@ -238,6 +238,6 @@ for mail in emails:
                         print("⚠ Geen geldige regels — mail niet gemarkeerd")
                 
                 except Exception as e:
-    print("❌ OpenAI fout:", e)
+                    print("❌ OpenAI fout:", e)
 
 print("\n=== Script klaar ===")
