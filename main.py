@@ -18,9 +18,6 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 # Jouw specifieke map ID
 FOLDER_ID = "AAMkADhhNzQzNzRkLWY5ZTItNDIyYy1iOTQ0LWEzNmYzMTRiZjE3NwAuAAAAAABLhGXob5x2QpwA-4ma2Ql8AQD2LEUvAE7rSrY1l1xqTe-AAADioOdwAAA="
 
-# Alleen bijlagen met deze woorden
-KEYWORDS = ["Warehouse - Shipment -AMERICOLD-"]
-
 # =============================
 # 1️⃣ OAUTH TOKEN OPHALEN
 # =============================
@@ -139,7 +136,7 @@ for mail in emails:
 
             filename = att.get("name", "").lower()
 
-            if filename.endswith(".pdf") and any(k in filename for k in KEYWORDS):
+            if filename.startswith("warehouse - shipment -americold-") and filename.endswith(".pdf"):
 
                 print(f"📄 Geldige PDF gevonden: {filename}")
 
