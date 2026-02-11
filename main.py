@@ -1,36 +1,50 @@
 import os
-import imaplib
-import email
-from openai import OpenAI
+import requests
 
-print("Script gestart")
+print("Graph test gestart")
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-IMAP_HOST = os.getenv("IMAP_HOST")
-IMAP_USER = os.getenv("IMAP_USER")
-IMAP_PASS = os.getenv("IMAP_PASS")
+tenant_id = os.getenv("AZURE_TENANT_ID")
+client_id = os.getenv("AZURE_CLIENT_ID")
+client_secret = os.getenv("AZURE_CLIENT_SECRET")
+mailbox_user = os.getenv("MAILBOX_USER")
 
-print("Environment geladen")
+# 1️⃣ OAuth token ophalen
+token_url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+token_data = {
+    "client_id": client_id,
+    "scope": "https://graph.microsoft.com/.default",
+    "client_secret": client_secret,
+    "grant_type": "client_credentials",
+}
 
-# Test OpenAI connectie
-try:
-    response = client.responses.create(
-        model="gpt-4.1",
-        input="Test connectie"
-    )
-    print("OpenAI werkt")
-except Exception as e:
-    print("OpenAI fout:", e)
+token_response = requests.post(token_url, data=token_data)
+access_token = token_response.json().get("access_token")
 
-# Test mail connectie
-try:
-    mail = imaplib.IMAP4_SSL(IMAP_HOST)
-    mail.login(IMAP_USER, IMAP_PASS)
-    print("Mail connectie werkt")
-    mail.logout()
-except Exception as e:
-    print("Mail fout:", e)
+if not access_token:
+    print("Token fout:", token_response.json())
+    exit()
 
-print("Einde test")
+print("Token ontvangen")
+
+# 2️⃣ Mails ophalen via Graph
+headers = {
+    "Authorization": f"Bearer {access_token}"
+}
+
+mail_url = f"https://graph.microsoft.com/v1.0/users/{mailbox_user}/messages?$top=5"
+
+mail_response = requests.get(mail_url, headers=headers)
+
+if mail_response.status_code != 200:
+    print("Mail fout:", mail_response.text)
+    exit()
+
+emails = mail_response.json().get("value", [])
+
+print(f"{len(emails)} mails gevonden")
+
+for mail in emails:
+    print("Onderwerp:", mail.get("subject"))
+
+print("Graph test klaar")
