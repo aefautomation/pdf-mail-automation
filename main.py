@@ -157,7 +157,7 @@ for mail in emails:
                         file=(filename, pdf_bytes, "application/pdf"),
                         purpose="user_data"
                     )
-
+                
                     response = client.responses.create(
                         model="gpt-4.1",
                         temperature=0,
@@ -169,24 +169,75 @@ for mail in emails:
                             ]
                         }]
                     )
-
-                    print("🧠 Extractie resultaat:")
+                
+                    print("🧠 Extractie resultaat (raw):")
                     print(response.output_text)
-                    
-                    mark_url = f"https://graph.microsoft.com/v1.0/users/{mailbox_user}/messages/{message_id}"
-
-                    patch_response = requests.patch(
-                        mark_url,
-                        headers={**headers, "Content-Type": "application/json"},
-                        json={"categories": ["Processed"]}
-                    )
-                    
-                    if patch_response.status_code == 200:
-                        print("✅ Mail gemarkeerd als Processed")
+                
+                    # =============================
+                    # PARSE AI OUTPUT
+                    # =============================
+                
+                    print("\n🔍 Parsing regels...")
+                
+                    lines = response.output_text.strip().split("\n")
+                    parsed_rows = []
+                
+                    for line in lines:
+                        line = line.strip()
+                
+                        if not line:
+                            continue
+                
+                        parts = line.split("|")
+                
+                        if len(parts) != 4:
+                            print("❌ Ongeldige regel (verkeerd aantal kolommen):", line)
+                            continue
+                
+                        uwref = parts[0].strip()
+                        klantart = parts[1].strip()
+                        cupart = parts[2].strip()
+                
+                        try:
+                            aantal = int(parts[3].strip())
+                        except:
+                            print("❌ Aantal geen integer:", line)
+                            continue
+                
+                        row = {
+                            "uwref": uwref,
+                            "klantart": klantart,
+                            "cupart": cupart,
+                            "aantal": aantal
+                        }
+                
+                        parsed_rows.append(row)
+                        print("✅ Geparsed:", row)
+                
+                    print(f"\n📊 Totaal geldige regels: {len(parsed_rows)}")
+                
+                    # =============================
+                    # CATEGORIE TOEVOEGEN
+                    # =============================
+                
+                    if len(parsed_rows) > 0:
+                        mark_url = f"https://graph.microsoft.com/v1.0/users/{mailbox_user}/messages/{message_id}"
+                
+                        patch_response = requests.patch(
+                            mark_url,
+                            headers={**headers, "Content-Type": "application/json"},
+                            json={"categories": ["Processed"]}
+                        )
+                
+                        if patch_response.status_code == 200:
+                            print("✅ Mail gemarkeerd als Processed")
+                        else:
+                            print("❌ Categorie fout:", patch_response.status_code, patch_response.text)
+                
                     else:
-                        print("❌ Categorie fout:", patch_response.status_code, patch_response.text)
-                    
+                        print("⚠ Geen geldige regels — mail niet gemarkeerd")
+                
                 except Exception as e:
-                    print("❌ OpenAI fout:", e)
+    print("❌ OpenAI fout:", e)
 
 print("\n=== Script klaar ===")
