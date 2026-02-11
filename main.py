@@ -175,15 +175,16 @@ for mail in emails:
                     
                     mark_url = f"https://graph.microsoft.com/v1.0/users/{mailbox_user}/messages/{message_id}"
 
-                    requests.patch(
+                    patch_response = requests.patch(
                         mark_url,
                         headers={**headers, "Content-Type": "application/json"},
-                        json={
-                            "categories": ["Processed"]
-                        }
+                        json={"categories": ["Processed"]}
                     )
-
-                    print("✅ Mail gemarkeerd als Processed")
+                    
+                    if patch_response.status_code == 200:
+                        print("✅ Mail gemarkeerd als Processed")
+                    else:
+                        print("❌ Categorie fout:", patch_response.status_code, patch_response.text)
                     
                 except Exception as e:
                     print("❌ OpenAI fout:", e)
