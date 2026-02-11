@@ -68,48 +68,66 @@ client = OpenAI(api_key=openai_api_key)
 
 PROMPT = """
 Je krijgt een warehouse document met titel "Uitslagbon".
-
 Het document kan uit meerdere pagina's bestaan.
 Gebruik ALLE pagina's.
 
-Je moet per artikel exact 4 velden extraheren:
+Doel:
+Extraheer per artikel exact vier velden uit de hoofdtabel.
+
+Gebruik uitsluitend deze velden:
 
 1. Uw referentie
-   - Staat onderaan in sectie "Algemeen"
+   - Staat onderaan bij sectie "Algemeen"
    - Label: "Uw referentie"
-   - Deze waarde is hetzelfde voor alle artikelregels
+   - Deze waarde is gelijk voor alle artikelen in het document
 
 2. Klant artnr.
-   - Eerste kolom van de tabel bovenaan
    - Kolomkop: "Klant artnr."
 
 3. CU partijnr.
-   - Kolom in dezelfde tabel
    - Kolomkop: "CU partijnr."
 
 4. Aantal eenheden
-   - Kolom rechts in de tabel
    - Kolomkop: "Aantal eenheden"
-   - NIET netto gewicht
-   - NIET bruto gewicht
-   - NIET aantal pallets
-   - Alleen exact de kolom "Aantal eenheden"
+   - Dit is een geheel getal
+   - Gebruik NIET netto gewicht
+   - Gebruik NIET bruto gewicht
+   - Gebruik NIET aantal pallets
 
-Belangrijk:
-- Negeer de rij "Totaal"
-- Negeer sectie "Diensten / Emballage"
-- Gebruik alleen de artikelregels in de hoofdtabel
-- 1 regel per artikel
+Negeer volledig:
+- De rij "Totaal"
+- Sectie "Diensten / Emballage"
+- Netto gewicht
+- Bruto gewicht
+- Opslag
+- Aantal pallets
+- Eventuele andere tabellen
+
+BELANGRIJK:
+- 1 object per artikelregel
+- Geen dubbele regels
+- Geen extra velden
 - Geen uitleg
-- Geen extra tekst
-- Geen kopteksten
+- Geen tekst buiten JSON
+- Alleen geldige JSON
 
-Geef output exact in dit formaat:
+Geef uitsluitend geldige JSON terug in exact dit formaat:
 
-UWREF|KLANTART|CUPART|AANTAL
+{
+  "rows": [
+    {
+      "uwref": "string",
+      "klantart": "string",
+      "cupart": "string",
+      "aantal": integer
+    }
+  ]
+}
 
-Voorbeeld:
-80567092|DV0518-1|2601200035|22
+Regels:
+- "aantal" moet een integer zijn
+- Als een veld ontbreekt, gebruik null
+- Geen tekst voor of na de JSON
 """
 
 # =============================
