@@ -48,7 +48,7 @@ headers = {
 # 2️⃣ MAILS UIT SPECIFIEKE MAP
 # =============================
 
-mail_url = f"https://graph.microsoft.com/v1.0/users/{mailbox_user}/mailFolders/{FOLDER_ID}/messages?$top=20"
+mail_url = f"https://graph.microsoft.com/v1.0/users/{mailbox_user}/mailFolders/{FOLDER_ID}/messages?$filter=not(categories/any(c:c eq 'Processed'))&$top=500"
 
 mail_response = requests.get(mail_url, headers=headers)
 
@@ -172,7 +172,19 @@ for mail in emails:
 
                     print("🧠 Extractie resultaat:")
                     print(response.output_text)
+                    
+                    mark_url = f"https://graph.microsoft.com/v1.0/users/{mailbox_user}/messages/{message_id}"
 
+                    requests.patch(
+                        mark_url,
+                        headers={**headers, "Content-Type": "application/json"},
+                        json={
+                            "categories": ["Processed"]
+                        }
+                    )
+
+                    print("✅ Mail gemarkeerd als Processed")
+                    
                 except Exception as e:
                     print("❌ OpenAI fout:", e)
 
