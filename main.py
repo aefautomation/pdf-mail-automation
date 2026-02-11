@@ -27,6 +27,18 @@ if not access_token:
 
 print("Token ontvangen")
 
+# Mailfolders ophalen
+folders_url = f"https://graph.microsoft.com/v1.0/users/{mailbox_user}/mailFolders"
+folders_response = requests.get(folders_url, headers=headers)
+
+folders = folders_response.json().get("value", [])
+
+print("\nBeschikbare mappen:")
+for folder in folders:
+    print("Naam:", folder.get("displayName"))
+    print("ID:", folder.get("id"))
+    print("-----")
+
 # 2️⃣ Mails ophalen via Graph
 headers = {
     "Authorization": f"Bearer {access_token}"
