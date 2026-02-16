@@ -48,7 +48,7 @@ headers = {
 # 2️⃣ MAILS UIT SPECIFIEKE MAP
 # =============================
 
-mail_url = f"https://graph.microsoft.com/v1.0/users/{mailbox_user}/mailFolders/{FOLDER_ID}/messages?$filter=not(categories/any(c:c eq 'Processed'))&$top=500"
+mail_url = f"https://graph.microsoft.com/v1.0/users/{mailbox_user}/mailFolders/{FOLDER_ID}/messages?$filter=not(categories/any(c:c eq 'Processed'))&$top=10"
 
 mail_response = requests.get(mail_url, headers=headers)
 
